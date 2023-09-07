@@ -1,90 +1,61 @@
-const http = require('node:http');
+const express = require("express");
+const app = express();
+const port = process.env.PORT || 3001;
 
-const hostname = '127.0.0.1';
-const port = 3000;
-const server = http.createServer((req, res) => {
-    res.statusCode = 200;
-});
+app.get("/", (req, res) => res.type('html').send(html));
 
-server.listen(port, hostname, () => {
-    console.log(`Server running at http://${hostname}:${port}/`);
-    start();
-});
+const server = app.listen(port, () => console.log(`Example app listening on port ${port}!`));
 
-function start() {
-    getDatas();
-    setTimeout(start, 150000);
-}
+server.keepAliveTimeout = 120 * 1000;
+server.headersTimeout = 120 * 1000;
 
-function getDatas() {
-    const axios = require("axios");
-    axios({
-            method: 'get',
-            url: 'https://api.taapi.io/exchange-symbols?secret=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbHVlIjoiNjRmODhlODM0OThkNzVkYTM2ZDNmNTU1IiwiaWF0IjoxNjk0MDExMDM5LCJleHAiOjMzMTk4NDc1MDM5fQ.xU9XWyfy9lcO4n9-5nD63kYJtI8jHIm0SWwd-fwyNMI&exchange=binancefutures',
-        })
-        .then(function (response) {
-            response.data = response.data.filter(item => item !== "USDC/USDT");
-            response.data = response.data.filter(item => item !== "ETH/BTC");
-            response.data.forEach((coin, index) => {
-                setTimeout(() => {
-
-                    const Taapi = require("taapi");
-                    const taapi = new Taapi.default("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbHVlIjoiNjRmODhlODM0OThkNzVkYTM2ZDNmNTU1IiwiaWF0IjoxNjk0MDExMDM5LCJleHAiOjMzMTk4NDc1MDM5fQ.xU9XWyfy9lcO4n9-5nD63kYJtI8jHIm0SWwd-fwyNMI");
-                    taapi.setDefaultExchange('binancefutures');
-                    taapi.addCalculation("rsi", coin, "1h", "rsi_1h");
-                    taapi.addCalculation("rsi", coin, "15m", "rsi_15m");
-                    taapi.addCalculation("rsi", coin, "5m", "rsi_5m");
-                    taapi.executeBulk().then(results => {
-                            console.log(results);
-                            if (parseFloat(results.rsi_1h.value) > 70 || parseFloat(results.rsi_1h.value) < 15) {
-                                sendDiscordMessage("" + coin + " 1h :", JSON.stringify(results.rsi_1h.value));
-                            }
-                            if (parseFloat(results.rsi_15m.value) > 70 || parseFloat(results.rsi_15m.value) < 15) {
-                                sendDiscordMessage("" + coin + " 15m :", JSON.stringify(results.rsi_15m.value));
-                            }
-                            if (parseFloat(results.rsi_5m.value) > 70 || parseFloat(results.rsi_5m.value) < 15) {
-                                sendDiscordMessage("" + coin + " 5m :", JSON.stringify(results.rsi_5m.value));
-                            }
-                        }
-                    ).catch(error => {
-                        console.error(error)
-                    });
-                }, 550 * (index + 1));
-            });
+const html = `
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Hello from Render!</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script>
+      setTimeout(() => {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+          disableForReducedMotion: true
         });
-}
-
-function sendDiscordMessage(symbol, message) {
-    var params = {
-        username: "Rsibot",
-        avatar_url: "",
-        content: " " + symbol + " " + message,
-        // embeds: [
-        //     {
-        //         "title": "Bitcoin Rsi 1h",
-        //         "color": 15258703,
-        //         "thumbnail": {
-        //             "url": "",
-        //         },
-        //         "fields": [
-        //             {
-        //                 "name": "Your fields here",
-        //                 "value": "Whatever you wish to send",
-        //                 "inline": true
-        //             }
-        //         ]
-        //     }
-        // ]
-    }
-
-
-    fetch('https://discord.com/api/webhooks/1145319925385277542/Nv7WYIX8eUXzcLrpaH730toluO4B1MDxsuE1o3tqCkXbylo3asQwXD2y1kcW42MmYhhy', {
-        method: "POST",
-        headers: {
-            'Content-type': 'application/json'
-        },
-        body: JSON.stringify(params)
-    }).then(res => {
-        // console.log(res);
-    })
-}
+      }, 500);
+    </script>
+    <style>
+      @import url("https://p.typekit.net/p.css?s=1&k=vnd5zic&ht=tk&f=39475.39476.39477.39478.39479.39480.39481.39482&a=18673890&app=typekit&e=css");
+      @font-face {
+        font-family: "neo-sans";
+        src: url("https://use.typekit.net/af/00ac0a/00000000000000003b9b2033/27/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("woff2"), url("https://use.typekit.net/af/00ac0a/00000000000000003b9b2033/27/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("woff"), url("https://use.typekit.net/af/00ac0a/00000000000000003b9b2033/27/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("opentype");
+        font-style: normal;
+        font-weight: 700;
+      }
+      html {
+        font-family: neo-sans;
+        font-weight: 700;
+        font-size: calc(62rem / 16);
+      }
+      body {
+        background: white;
+      }
+      section {
+        border-radius: 1em;
+        padding: 1em;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin-right: -50%;
+        transform: translate(-50%, -50%);
+      }
+    </style>
+  </head>
+  <body>
+    <section>
+      Hello from Render!
+    </section>
+  </body>
+</html>
+`
